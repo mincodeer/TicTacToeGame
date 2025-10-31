@@ -19,8 +19,6 @@ public class SwingTicTacToeGame implements Game
     private Player player2;
     private Player current;
     private final GameWindow view = new GameWindow();
-
-    // AI 전략들
     private final MoveStrategy aiEasy = new RandomStrategy();
     private final MoveStrategy aiHard = new SmartStrategy();
 
@@ -34,6 +32,8 @@ public class SwingTicTacToeGame implements Game
         player1 = new Player(p1, 'X');
         player2 = new Player(p2, 'O');
         current  = player1;
+        
+        DatabaseManager.ensureTable();
 
         wireEvents();
         refreshView();
@@ -100,6 +100,7 @@ public class SwingTicTacToeGame implements Game
             JOptionPane.showMessageDialog(view, current.getName() + " (" + current.getSymbol() + ") wins!");
             current.addScore();
             FileHandler.saveScore(current);
+            ResultDAO.insert(player1.getName(), player2.getName(), current.getName());
             askReplayOrClose();
             return true;
         }
@@ -107,6 +108,7 @@ public class SwingTicTacToeGame implements Game
         {
             refreshView();
             JOptionPane.showMessageDialog(view, "It's a draw!");
+            ResultDAO.insert(player1.getName(), player2.getName(), "Draw");
             askReplayOrClose();
             return true;
         }
@@ -134,7 +136,8 @@ public class SwingTicTacToeGame implements Game
         });
     }
 
-    private MoveStrategy getSelectedAI() {
+    private MoveStrategy getSelectedAI() 
+    {
         String lv = (String) view.aiLevelBox.getSelectedItem();
         if ("Hard".equalsIgnoreCase(lv)) return aiHard;
         return aiEasy;
