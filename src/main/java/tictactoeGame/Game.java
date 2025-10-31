@@ -10,7 +10,7 @@ package tictactoeGame;
 
 /**
  *
- * @author minja1
+ * @author minja
  */
 public interface Game {
     void play();
