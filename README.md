@@ -33,7 +33,7 @@ No extra setup is required.
 - **MVC:**  
   `Board` (Model), `GameWindow` (View), `SwingTicTacToeGame` (Controller)  
 - **Strategy:**  
-  The AI behavior can be changed by switching between strategy classes.  
+  The AI behaviour can be changed by switching between strategy classes.  
 - **DAO:**  
   `ResultDAO` manages database operations, and `DatabaseManager` ensures the table exists.
 
@@ -41,7 +41,7 @@ No extra setup is required.
 - `Board` – Stores moves, checks wins/draws, validates input  
 - `GameWindow` – Builds and updates the Swing UI (buttons, status labels, reset)  
 - `SwingTicTacToeGame` – Main game logic, player turns, AI moves, and UI updates  
-- `MoveStrategy`, `RandomStrategy`, `SmartStrategy` – AI behavior implementations  
+- `MoveStrategy`, `RandomStrategy`, `SmartStrategy` – AI behaviour implementations  
 - `DatabaseManager`, `ResultDAO`, `ResultDialog` – Handles Derby DB, record storage, and display
 
 ## 7. Testing
@@ -57,18 +57,18 @@ All tests pass successfully (`BUILD SUCCESS`).
 ## 8. Build & Dependencies
 - Managed with **Maven** (`pom.xml`)
 - Key dependencies:
-  - `org.apache.derby:derby`
+  - `org.apache.derby: derby`
   - `org.junit.jupiter:junit-jupiter` (scope: test)
 - Build output:  
   `target/TicTacToeGame-1.0-SNAPSHOT.jar` after **Clean and Build**
 
 ## 9. Notes
-- The Git repository was re-initialized after moving project files to a clean path.  
-  Previous commits were summarized in new commit messages.  
+- The Git repository was re-initialised after moving project files to a clean path.  
+  Previous commits were summarised in new commit messages.  
 - `.gitignore` excludes build folders (`target/`), private NetBeans files, and local Derby database files (`TicTacToeDB/`).
 
 ## 10. Development Reflection
-I used ChatGPT mainly to **refactor and clean up the code** for readability and structure.  
+I primarily used ChatGPT to **refactor and clean up the code** for improved readability and structure.  
 It also helped me understand how to implement the **Minimax algorithm** for the Hard AI logic,  
 especially the recursive evaluation part that determines the best move.  
 All final implementations and debugging were done by me after understanding the concepts.  
