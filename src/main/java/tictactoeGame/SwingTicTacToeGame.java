@@ -9,9 +9,10 @@ package tictactoeGame;
  *
  * @author minja
  */
+
 import javax.swing.*;
 
-public class SwingTicTacToeGame implements Game 
+public class SwingTicTacToeGame implements Game
 {
     private final Board board = new Board();
     private Player player1;
@@ -19,10 +20,11 @@ public class SwingTicTacToeGame implements Game
     private Player current;
     private final GameWindow view = new GameWindow();
 
-    // AI (uses O)
-    private final MoveStrategy ai = new RandomStrategy();
+    // AI 전략들
+    private final MoveStrategy aiEasy = new RandomStrategy();
+    private final MoveStrategy aiHard = new SmartStrategy();
 
-    public SwingTicTacToeGame() 
+    public SwingTicTacToeGame()
     {
         String p1 = JOptionPane.showInputDialog(null, "Enter Player 1 name (X):", "Player 1", JOptionPane.PLAIN_MESSAGE);
         if (p1 == null || p1.isBlank()) p1 = "Player1";
@@ -38,33 +40,46 @@ public class SwingTicTacToeGame implements Game
     }
 
     @Override
-    public void play() 
+    public void play()
     {
         SwingUtilities.invokeLater(() -> view.setVisible(true));
     }
 
-    private void wireEvents() 
+    private void wireEvents()
     {
-        for (int r = 0; r < 3; r++) 
+        for (int r = 0; r < 3; r++)
         {
-            for (int c = 0; c < 3; c++) 
+            for (int c = 0; c < 3; c++)
             {
                 final int rr = r, cc = c;
                 view.buttons[r][c].addActionListener(e -> onHumanClick(rr, cc));
             }
         }
-        view.resetBtn.addActionListener(e -> 
+        view.resetBtn.addActionListener(e ->
         {
             board.reset();
             current = player1;
+            unlockBoard();
             refreshView();
         });
-        view.vsAICheck.addActionListener(e -> refreshView());
+
+        view.vsAICheck.addActionListener(e -> {
+            refreshView();
+        });
+
+        view.aiLevelBox.addActionListener(e -> {
+            refreshView();
+        });
     }
 
-    private void onHumanClick(int r, int c) 
+    private void onHumanClick(int r, int c)
     {
-        if (!board.makeMove(r, c, current.getSymbol())) 
+        if (view.vsAICheck.isSelected() && current == player2) {
+            java.awt.Toolkit.getDefaultToolkit().beep();
+            return;
+        }
+
+        if (!board.makeMove(r, c, current.getSymbol()))
         {
             java.awt.Toolkit.getDefaultToolkit().beep();
             return;
@@ -77,9 +92,9 @@ public class SwingTicTacToeGame implements Game
         maybeAIMove();
     }
 
-    private boolean afterMoveCheckAndMaybeEnd() 
+    private boolean afterMoveCheckAndMaybeEnd()
     {
-        if (board.checkWin(current.getSymbol())) 
+        if (board.checkWin(current.getSymbol()))
         {
             refreshView();
             JOptionPane.showMessageDialog(view, current.getName() + " (" + current.getSymbol() + ") wins!");
@@ -88,7 +103,7 @@ public class SwingTicTacToeGame implements Game
             askReplayOrClose();
             return true;
         }
-        if (board.isFull()) 
+        if (board.isFull())
         {
             refreshView();
             JOptionPane.showMessageDialog(view, "It's a draw!");
@@ -98,16 +113,17 @@ public class SwingTicTacToeGame implements Game
         return false;
     }
 
-    private void maybeAIMove() 
+    private void maybeAIMove()
     {
         if (!view.vsAICheck.isSelected()) return;
         if (current != player2) return;
         if (board.isFull()) return;
 
-        SwingUtilities.invokeLater(() -> 
+        SwingUtilities.invokeLater(() ->
         {
+            MoveStrategy ai = getSelectedAI();
             int[] mv = ai.nextMove(board, current.getSymbol());
-            if (mv != null) 
+            if (mv != null)
             {
                 board.makeMove(mv[0], mv[1], current.getSymbol());
                 if (afterMoveCheckAndMaybeEnd()) return;
@@ -118,26 +134,34 @@ public class SwingTicTacToeGame implements Game
         });
     }
 
-    private void askReplayOrClose() 
+    private MoveStrategy getSelectedAI() {
+        String lv = (String) view.aiLevelBox.getSelectedItem();
+        if ("Hard".equalsIgnoreCase(lv)) return aiHard;
+        return aiEasy;
+    }
+
+    private void askReplayOrClose()
     {
+        lockBoard();
         int opt = JOptionPane.showConfirmDialog(view, "Play again?", "Next Round", JOptionPane.YES_NO_OPTION);
-        if (opt == JOptionPane.YES_OPTION) 
+        if (opt == JOptionPane.YES_OPTION)
         {
             board.reset();
             current = player1;
+            unlockBoard();
             refreshView();
-        } else 
+        } else
         {
             FileHandler.printScores();
             view.dispose();
         }
     }
 
-    private void refreshView() 
+    private void refreshView()
     {
-        for (int r = 0; r < 3; r++) 
+        for (int r = 0; r < 3; r++)
         {
-            for (int c = 0; c < 3; c++) 
+            for (int c = 0; c < 3; c++)
             {
                 char ch = board.get(r, c);
                 view.buttons[r][c].setText(ch == ' ' ? "" : String.valueOf(ch));
@@ -145,6 +169,20 @@ public class SwingTicTacToeGame implements Game
             }
         }
         String mode = view.vsAICheck.isSelected() ? "Human vs AI" : "Human vs Human";
-        view.status.setText(mode + " — Player " + current.getName() + " (" + current.getSymbol() + ") turn");
+        String lv = (String) view.aiLevelBox.getSelectedItem();
+        if (!view.vsAICheck.isSelected()) lv = "-";
+        view.status.setText(mode + " — AI:" + lv + " — Player " + current.getName() + " (" + current.getSymbol() + ") turn");
+    }
+
+    private void lockBoard() {
+        for (int r = 0; r < 3; r++)
+            for (int c = 0; c < 3; c++)
+                view.buttons[r][c].setEnabled(false);
+    }
+
+    private void unlockBoard() {
+        for (int r = 0; r < 3; r++)
+            for (int c = 0; c < 3; c++)
+                if (board.get(r, c) == ' ') view.buttons[r][c].setEnabled(true);
     }
 }
